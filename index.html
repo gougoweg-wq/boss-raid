@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Equation Boss Raid</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d1a;--panel:#151a33;--neon:#38f9d7;--pink:#ff3d81;--gold:#ffd23f;--txt:#e8ecff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0%,#1d2350,#0b0d1a 70%);color:var(--txt);font-family:Rubik,system-ui,sans-serif;display:flex;justify-content:center;overflow-x:hidden}
+.wrap{width:min(860px,100%);padding:16px}
+h1{font-family:"Press Start 2P";font-size:18px;text-align:center;color:var(--neon);text-shadow:0 0 12px var(--neon);margin:8px 0 14px}
+.top{display:flex;justify-content:space-between;font-family:"Press Start 2P";font-size:11px;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.top span b{color:var(--gold)}
+.arena{position:relative;background:var(--panel);border:3px solid #2b3570;border-radius:14px;padding:16px;overflow:hidden}
+.boss{display:flex;align-items:center;gap:16px}
+.sprite{font-size:84px;line-height:1;filter:drop-shadow(0 0 16px rgba(255,61,129,.6));transition:transform .1s}
+.sprite.hit{animation:hit .35s}
+@keyframes hit{0%{transform:translateX(0)}25%{transform:translateX(-14px) rotate(-8deg);filter:brightness(3)}50%{transform:translateX(12px)}100%{transform:translateX(0)}}
+.bars{flex:1}
+.name{font-family:"Press Start 2P";font-size:12px;margin-bottom:8px;color:var(--pink)}
+.hp{height:22px;background:#2a1030;border:2px solid #000;border-radius:6px;overflow:hidden}
+.hp i{display:block;height:100%;background:linear-gradient(90deg,#ff3d81,#ff8a3d);transition:width .3s}
+.me{margin-top:10px;font-size:13px}
+.me .hp{height:12px}.me .hp i{background:linear-gradient(90deg,#38f9d7,#4aa3ff)}
+.q{margin:22px 0 10px;text-align:center;font-size:34px;font-weight:800;letter-spacing:.5px;min-height:46px}
+.q small{display:block;font-size:16px;font-weight:500;color:#aab3e6;margin-bottom:6px}
+.row{display:flex;gap:10px;justify-content:center}
+input{width:180px;font:800 28px Rubik;text-align:center;padding:10px;border-radius:10px;border:3px solid #2b3570;background:#0b0d1a;color:var(--txt);outline:none}
+input:focus{border-color:var(--neon)}
+button{font-family:"Press Start 2P";font-size:12px;padding:14px 18px;border-radius:10px;border:0;background:var(--neon);color:#06201b;cursor:pointer;box-shadow:0 5px 0 #1a9c86}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #1a9c86}
+.timer{height:8px;background:#222a55;border-radius:4px;margin-top:14px;overflow:hidden}.timer i{display:block;height:100%;background:var(--gold);transition:width .1s linear}
+.msg{text-align:center;min-height:24px;margin-top:10px;font-weight:800}
+.ok{color:var(--neon)}.no{color:var(--pink)}
+.dmg{position:absolute;font-family:"Press Start 2P";color:var(--gold);font-size:22px;pointer-events:none;animation:up 1s forwards;text-shadow:0 0 8px #000}
+@keyframes up{to{transform:translateY(-70px);opacity:0}}
+.overlay{position:fixed;inset:0;background:rgba(5,6,15,.88);display:flex;align-items:center;justify-content:center;z-index:5}
+.card{background:var(--panel);border:3px solid var(--neon);border-radius:16px;padding:24px;max-width:520px;text-align:center}
+.card h2{font-family:"Press Start 2P";font-size:16px;color:var(--gold);line-height:1.6}
+.card p{line-height:1.5}
+.hint{font-size:13px;color:#aab3e6;text-align:center;margin-top:8px}
+.shake{animation:shake .3s}@keyframes shake{25%{transform:translate(6px,-4px)}50%{transform:translate(-6px,4px)}75%{transform:translate(4px,2px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚔ EQUATION BOSS RAID</h1>
+  <div class="top"><span>LVL <b id="lvl">1</b>/5</span><span>КОМБО <b id="combo">x0</b></span><span>XP <b id="xp">0</b></span><span>⏱ <b id="time">0:00</b></span></div>
+  <div class="arena" id="arena">
+    <div class="boss">
+      <div class="sprite" id="sprite">👾</div>
+      <div class="bars">
+        <div class="name" id="bname">SLIME KING</div>
+        <div class="hp"><i id="bhp" style="width:100%"></i></div>
+        <div class="me">Твоё HP <div class="hp"><i id="php" style="width:100%"></i></div></div>
+      </div>
+    </div>
+    <div class="q" id="q"></div>
+    <div class="row"><input id="ans" inputmode="decimal" autocomplete="off" placeholder="x = ?"><button id="hitbtn">УДАР</button></div>
+    <div class="timer"><i id="tbar"></i></div>
+    <div class="msg" id="msg"></div>
+    <div class="hint">Enter — удар. Быстрый ответ = крит x2. 3 верных подряд = комбо.</div>
+  </div>
+</div>
+
+<div class="overlay" id="start"><div class="card">
+  <h2>EQUATION<br>BOSS RAID</h2>
+  <p>5 боссов, каждый сильнее предыдущего. Реши уравнение — нанеси удар. Ошибся или не успел — босс бьёт тебя.</p>
+  <p>Ответ — значение x (целое число).</p>
+  <button id="go">START</button>
+</div></div>
+<div class="overlay" id="end" style="display:none"><div class="card"><h2 id="etitle"></h2><p id="etext"></p><button id="again">ЕЩЁ РАЗ</button></div></div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=r(a,b)}while(v===0);return v};
+const sg=n=>n<0?'− '+(-n):'+ '+n;
+// генераторы: x всегда целый
+const G=[
+ ()=>{const x=r(2,12),a=r(2,9),b=r(1,20);return{s:`${a}x ${sg(b)} = ${a*x+b}`,x}},
+ ()=>{const x=r(2,12),a=r(4,9),c=r(1,a-1),b=nz(-10,10);const d=a*x+b-c*x;return{s:`${a}x ${sg(b)} = ${c===1?'':c}x`+(d?' '+sg(d):''),x}},
+ ()=>{const x=r(1,10),k=r(2,5),m=nz(-6,6),c=r(1,k-1),d=k*(x+m)-c*x;return{s:`${k}(x ${sg(m)}) = ${c===1?'':c}x`+(d?' '+sg(d):''),x}},
+ ()=>{const d=[2,3,4,5][r(0,3)],x=d*r(1,8),b=r(1,9);return{s:`x/${d} ${sg(b)} = ${x/d+b}`,x}},
+ ()=>{const x=r(1,9),a=r(2,4),b=nz(-5,5);let c;do{c=r(2,4)}while(c===a);const e=nz(-5,5);const L=a*(x+b),R=c*(x+e);const f=L-R;return{s:`${a}(x ${sg(b)}) = ${c}(x ${sg(e)})`+(f?' '+sg(f):''),x}},
+ ()=>{const x=r(3,20),d=r(2,9);return{s:`Одно число на ${d} больше другого, сумма ${2*x+d}. Найди меньшее.`,x,word:1}},
+ ()=>{const p=[10,20,25,50][r(0,3)],x=r(2,12)*(100/p);return{s:`${p}% от числа равны ${x*p/100}. Найди число.`,x,word:1}},
+];
+const BOSSES=[
+ {n:'SLIME KING',e:'👾',hp:3,set:[0,3],t:25},
+ {n:'CREEPER LORD',e:'🧟',hp:4,set:[0,1,3],t:25},
+ {n:'CYBER DRAGON',e:'🐉',hp:4,set:[1,2,5],t:30},
+ {n:'GLITCH TITAN',e:'🤖',hp:5,set:[2,4,6],t:35},
+ {n:'FINAL BOSS: X-LORD',e:'👹',hp:6,set:[2,4,5,6],t:40},
+];
+let lvl,bhp,php,combo,xp,cur,tleft,tmax,iv,t0,clock,busy,errors,solved;
+function newQ(){const b=BOSSES[lvl];const g=G[b.set[r(0,b.set.length-1)]]();cur=g;$('q').innerHTML=(g.word?'<small>Задача — составь уравнение</small>':'<small>Найди x</small>')+g.s;$('ans').value='';$('ans').focus();tmax=b.t;tleft=tmax;busy=false}
+function bars(){const b=BOSSES[lvl];$('bhp').style.width=Math.max(0,bhp/b.hp*100)+'%';$('php').style.width=Math.max(0,php/5*100)+'%';$('combo').textContent='x'+combo;$('xp').textContent=xp;$('lvl').textContent=lvl+1}
+function boss(){const b=BOSSES[lvl];bhp=b.hp;$('sprite').textContent=b.e;$('bname').textContent=b.n;bars();newQ()}
+function float(t){const d=document.createElement('div');d.className='dmg';d.textContent=t;d.style.left=(90+Math.random()*60)+'px';d.style.top='40px';$('arena').appendChild(d);setTimeout(()=>d.remove(),1000)}
+let AC;function beep(f,dur,type='square',v=.06){try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+dur);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+dur)}catch(e){}}
+function hit(){if(busy)return;const v=parseFloat($('ans').value.replace(',','.'));if(isNaN(v)){$('msg').textContent='Введи число';$('msg').className='msg no';return}
+ busy=true;if(Math.abs(v-cur.x)<1e-9){solved++;combo++;const crit=tleft>tmax*0.6;let dmg=1+(crit?1:0)+(combo>=3?1:0);bhp-=dmg;xp+=10*dmg;
+  $('sprite').classList.remove('hit');void $('sprite').offsetWidth;$('sprite').classList.add('hit');float((crit?'CRIT ':'')+'-'+dmg);beep(880,.12);beep(1320,.15,'square',.05);
+  $('msg').textContent=crit?'КРИТ! Быстро и точно 🔥':(combo>=3?'КОМБО! 🔥':'Попал!');$('msg').className='msg ok';bars();
+  setTimeout(()=>{if(bhp<=0){beep(523,.2);beep(784,.3);if(lvl===BOSSES.length-1)return win();lvl++;$('msg').textContent='Босс повержен! Следующий...';setTimeout(boss,900)}else newQ()},700)}
+ else miss(`Мимо! x = ${cur.x}`)}
+function miss(t){errors++;combo=0;php--;beep(150,.3,'sawtooth',.08);$('arena').classList.remove('shake');void $('arena').offsetWidth;$('arena').classList.add('shake');$('msg').textContent=t;$('msg').className='msg no';bars();
+ setTimeout(()=>{if(php<=0)return lose();newQ()},1300)}
+function tick(){if(busy)return;tleft-=.1;$('tbar').style.width=Math.max(0,tleft/tmax*100)+'%';if(tleft<=0){busy=true;miss(`Время! x = ${cur.x}`)}}
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function start(){lvl=0;php=5;combo=0;xp=0;errors=0;solved=0;$('start').style.display='none';$('end').style.display='none';boss();clearInterval(iv);iv=setInterval(tick,100);t0=Date.now();clearInterval(clock);clock=setInterval(()=>$('time').textContent=fmt(Math.round((Date.now()-t0)/1000)),500)}
+function stop(){clearInterval(iv);clearInterval(clock)}
+function win(){stop();$('etitle').textContent='🏆 RAID CLEARED!';$('etext').innerHTML=`Все 5 боссов повержены!<br>Решено: <b>${solved}</b>, ошибок: <b>${errors}</b><br>XP: <b>${xp}</b> · время ${$('time').textContent}`;$('end').style.display='flex'}
+function lose(){stop();$('etitle').textContent='💀 GAME OVER';$('etext').innerHTML=`Дошёл до босса ${lvl+1}: ${BOSSES[lvl].n}<br>Решено: <b>${solved}</b> · XP: <b>${xp}</b><br>Попробуй ещё раз!`;$('end').style.display='flex'}
+$('go').onclick=start;$('again').onclick=start;$('hitbtn').onclick=hit;$('ans').addEventListener('keydown',e=>{if(e.key==='Enter')hit()});
+window.__g={G};
+})();
+</script>
+</body>
+</html>
